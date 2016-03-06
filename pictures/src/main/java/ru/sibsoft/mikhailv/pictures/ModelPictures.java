@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -36,10 +38,12 @@ import ru.sibsoft.mikhailv.pictures.data.DataPictures;
  */
 public class ModelPictures {
 
+    private static final String LOG_TAG = ModelPictures.class.getSimpleName();
+
     private final SpiceManager spiceManager = new SpiceManager(LoadImageService.class);
     private final FragmentPictures fragment;
     private List<ListItem> listItems;
-    private Preferences prefs;
+    private Preferences prefs = new Preferences();
     private Handler handlerSlideshow;
 
     public ModelPictures(FragmentPictures fragment) {
@@ -53,10 +57,6 @@ public class ModelPictures {
         listItems = new ArrayList<ListItem>();
         for(DataPicture item: dataPictures.pictures) {
             listItems.add(new ListItem(item));
-        }
-        if(!listItems.isEmpty()) {
-            listItems.add(new ListItem(dataPictures.pictures.get(0)));
-            listItems.add(new ListItem(dataPictures.pictures.get(1)));
         }
 
         try {
@@ -72,24 +72,53 @@ public class ModelPictures {
             }
         } catch(FileNotFoundException e) {
         }
+
+        prefs = new Preferences(fragment.getActivity().getSharedPreferences("URA", Context.MODE_PRIVATE));
     }
 
     public void onResume() {
-        closeRingIfNeeded(fragment.findViewPager().getCurrentItem());
+        Preferences oldPrefs = prefs;
         prefs = new Preferences(fragment.getActivity().getSharedPreferences("URA", Context.MODE_PRIVATE));
         if(prefs.slideshow) {
-            if(handlerSlideshow == null) {
-                handlerSlideshow = new Handler();
-            }
-            handlerSlideshow.removeCallbacksAndMessages(null);
-            handlerSlideshow.post(new Runnable() {
-                @Override
-                public void run() {
-                    handlerSlideshow.postDelayed(this, prefs.interval * 1000);
-                    fragment.gotoPage((int) Math.round(Math.random() * listItems.size()) + 1, true);
-                }
-            });
+            initSlideshow();
+        } else {
+            initManual();
         }
+    }
+
+    private void initManual() {
+        if(handlerSlideshow != null) {
+            handlerSlideshow.removeCallbacksAndMessages(null);
+            handlerSlideshow = null;
+        }
+        ViewPager viewPager = fragment.findViewPager();
+        if(viewPager != null) {
+            PagerAdapter adapter = viewPager.getAdapter();
+            if(adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+        }
+    }
+
+    private void initSlideshow() {
+        if(handlerSlideshow == null) {
+            handlerSlideshow = new Handler();
+        }
+        handlerSlideshow.removeCallbacksAndMessages(null);
+        ViewPager viewPager = fragment.findViewPager();
+        if(viewPager != null) {
+            PagerAdapter adapter = viewPager.getAdapter();
+            if(adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+        }
+        handlerSlideshow.post(new Runnable() {
+            @Override
+            public void run() {
+                handlerSlideshow.postDelayed(this, prefs.interval * 1000);
+                fragment.gotoPage(fragment.findViewPager().getCurrentItem() + 1, true);
+            }
+        });
     }
 
     public void onPause() {
@@ -106,32 +135,37 @@ public class ModelPictures {
     }
 
     public void closeRingIfNeeded(int position) {
-        if(position == 0) {
-            fragment.gotoPage(listItems.size() - 2, false);
-        } else if(position == listItems.size() - 1) {
-            fragment.gotoPage(1, false);
+        if(position != 0 && position != listItems.size() - 1) {
+            return;
         }
+        int copyTo = listItems.size() - 1 - position;
+        for(int i = 0; i < 2; i++) {
+            ListItem item = listItems.get(position);
+            listItems.remove(position);
+            listItems.add(copyTo, item);
+        }
+        fragment.findViewPager().getAdapter().notifyDataSetChanged();
     }
 
     public int getCount() {
-        return listItems.size();
+        return prefs.slideshow ? Integer.MAX_VALUE : listItems.size();
     }
 
     public View createView(int position) {
-        if(position == 0) {
-            listItems.get(listItems.size() - 2).createView();
-        } else if(position == 1) {
-            listItems.get(listItems.size() - 1).createView();
-        } else if(position == listItems.size() - 2) {
-            listItems.get(0).createView();
-        } else if(position == listItems.size() - 1) {
-            listItems.get(1).createView();
+        if(prefs.slideshow) {
+            int index = prefs.showRandomly
+                    ? (int)Math.floor(Math.random() * listItems.size())
+                    : position % listItems.size();
+            return new ListItem(listItems.get(index)).createView();
+        } else {
+            return listItems.get(position).createView();
         }
-        return listItems.get(position).createView();
     }
 
-    public void destroyView(int position) {
-        if(position != 0 && position != 1 && position != listItems.size() - 2 && position != listItems.size() - 1) {
+    public void destroyView(int position, View view) {
+        if(prefs.slideshow) {
+            fragment.findViewPager().removeView(view);
+        } else {
             listItems.get(position).destroyView();
         }
     }
@@ -140,6 +174,15 @@ public class ModelPictures {
         for(ListItem item: listItems) {
             item.destroyView();
         }
+    }
+
+    public Integer getViewPosition(View view) {
+        for(int i = 0; i < listItems.size(); i++) {
+            if(listItems.get(i).view == view) {
+                return i;
+            }
+        }
+        return null;
     }
 
     private interface ImageRequestListener<RESULT> extends RequestListener<RESULT>, RequestProgressListener
@@ -164,6 +207,10 @@ public class ModelPictures {
             this(dataPicture.id, dataPicture.url, false, "");
         }
 
+        public ListItem(ListItem listItem) {
+            this(listItem.id, listItem.url, listItem.favourite, listItem.note);
+        }
+
         void addToFavourites(String note) {
             this.favourite = true;
             this.note = note == null ? "" : note;
@@ -177,6 +224,7 @@ public class ModelPictures {
         View createView() {
             if(view == null) {
                 view = fragment.getLayoutInflater(null).inflate(R.layout.view_image, null);
+                fragment.findViewPager().addView(view);
                 view.findViewById(R.id.imageView).setVisibility(View.GONE);
                 view.findViewById(R.id.progressBar).setVisibility(View.GONE);
                 loadBitmap();
@@ -191,7 +239,10 @@ public class ModelPictures {
         }
 
         public void destroyView() {
-            view = null;
+            if(view != null) {
+                fragment.findViewPager().removeView(view);
+                view = null;
+            }
         }
 
         private void loadBitmap() {
@@ -239,6 +290,9 @@ public class ModelPictures {
             interval = prefs.getInt("interval", 1);
             showRandomly = prefs.getBoolean("showRandomly", false);
             showFavoritesOnly = prefs.getBoolean("showFavouritesOnly", false);
+        }
+
+        public Preferences() {
         }
     }
 

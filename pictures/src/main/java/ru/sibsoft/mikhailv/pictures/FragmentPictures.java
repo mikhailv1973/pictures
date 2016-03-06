@@ -45,15 +45,18 @@ public class FragmentPictures extends Fragment {
 
             @Override
             public Object instantiateItem(ViewGroup container, int position) {
-                View view = model.createView(position);
-                findViewPager().addView(view);
-                return view;
+                return model.createView(position);
             }
 
             @Override
             public void destroyItem(ViewGroup container, int position, Object object) {
-                model.destroyView(position);
-                findViewPager().removeView((View) object);
+                model.destroyView(position, (View)object);
+            }
+
+            @Override
+            public int getItemPosition(Object object) {
+                Integer position = model.getViewPosition((View)object);
+                return position == null ? POSITION_NONE : position;
             }
         });
         findViewPager().addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -72,6 +75,9 @@ public class FragmentPictures extends Fragment {
                 }
             }
         });
+        if(savedInstanceState == null) {
+            gotoPage(1, false);
+        }
     }
 
     @Override
@@ -105,6 +111,6 @@ public class FragmentPictures extends Fragment {
     }
 
     ViewPager findViewPager() {
-        return (ViewPager)getView();
+        return (ViewPager)getView().findViewById(R.id.view_pager);
     }
 }
