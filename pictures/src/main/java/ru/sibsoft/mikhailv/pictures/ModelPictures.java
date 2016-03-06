@@ -77,7 +77,6 @@ public class ModelPictures {
     }
 
     public void onResume() {
-        Preferences oldPrefs = prefs;
         prefs = new Preferences(fragment.getActivity().getSharedPreferences("URA", Context.MODE_PRIVATE));
         if(prefs.slideshow) {
             initSlideshow();
@@ -87,10 +86,6 @@ public class ModelPictures {
     }
 
     private void initManual() {
-        if(handlerSlideshow != null) {
-            handlerSlideshow.removeCallbacksAndMessages(null);
-            handlerSlideshow = null;
-        }
         ViewPager viewPager = fragment.findViewPager();
         if(viewPager != null) {
             PagerAdapter adapter = viewPager.getAdapter();
@@ -163,7 +158,7 @@ public class ModelPictures {
     }
 
     public void destroyView(int position, View view) {
-        if(prefs.slideshow) {
+        if(prefs.slideshow || position >= listItems.size()) {
             fragment.findViewPager().removeView(view);
         } else {
             listItems.get(position).destroyView();
@@ -183,6 +178,10 @@ public class ModelPictures {
             }
         }
         return null;
+    }
+
+    public boolean canScroll() {
+        return !prefs.slideshow;
     }
 
     private interface ImageRequestListener<RESULT> extends RequestListener<RESULT>, RequestProgressListener

@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -73,6 +74,12 @@ public class FragmentPictures extends Fragment {
                 if(state == ViewPager.SCROLL_STATE_IDLE) {
                     model.closeRingIfNeeded(findViewPager().getCurrentItem());
                 }
+            }
+        });
+        findViewPager().setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return !model.canScroll();
             }
         });
         if(savedInstanceState == null) {
