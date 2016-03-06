@@ -50,8 +50,8 @@ public class ModelPictures {
             listItems.add(new ListItem(item));
         }
         if(!listItems.isEmpty()) {
-            listItems.add(0, new ListItem(dataPictures.pictures.get(dataPictures.pictures.size() - 1)));
             listItems.add(new ListItem(dataPictures.pictures.get(0)));
+            listItems.add(new ListItem(dataPictures.pictures.get(1)));
         }
 
         try {

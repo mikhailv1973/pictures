@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 public class FragmentPictures extends Fragment {
 
     private ModelPictures model = new ModelPictures(this);
-    private ViewPager viewPager;
 
     // region Lifecycle
 
@@ -27,8 +26,13 @@ public class FragmentPictures extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewPager = (ViewPager)inflater.inflate(R.layout.fragment_pictures, container, false);
-        viewPager.setAdapter(new PagerAdapter() {
+        return inflater.inflate(R.layout.fragment_pictures, container, false);
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        findViewPager().setAdapter(new PagerAdapter() {
             @Override
             public int getCount() {
                 return model.getCount();
@@ -42,17 +46,17 @@ public class FragmentPictures extends Fragment {
             @Override
             public Object instantiateItem(ViewGroup container, int position) {
                 View view = model.createView(position);
-                viewPager.addView(view);
+                findViewPager().addView(view);
                 return view;
             }
 
             @Override
             public void destroyItem(ViewGroup container, int position, Object object) {
                 model.destroyView(position);
-                viewPager.removeView((View) object);
+                findViewPager().removeView((View) object);
             }
         });
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        findViewPager().addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
@@ -64,12 +68,16 @@ public class FragmentPictures extends Fragment {
             @Override
             public void onPageScrollStateChanged(int state) {
                 if(state == ViewPager.SCROLL_STATE_IDLE) {
-                    model.closeRingIfNeeded(viewPager.getCurrentItem());
+                    model.closeRingIfNeeded(findViewPager().getCurrentItem());
                 }
             }
         });
-        model.closeRingIfNeeded(viewPager.getCurrentItem());
-        return viewPager;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        model.closeRingIfNeeded(findViewPager().getCurrentItem());
     }
 
     @Override
@@ -87,7 +95,10 @@ public class FragmentPictures extends Fragment {
     // endregion
 
     public void gotoPage(int page, boolean smoothScroll) {
-        viewPager.setCurrentItem(page, smoothScroll);
+        findViewPager().setCurrentItem(page, smoothScroll);
     }
 
+    private ViewPager findViewPager() {
+        return (ViewPager)getView();
+    }
 }
