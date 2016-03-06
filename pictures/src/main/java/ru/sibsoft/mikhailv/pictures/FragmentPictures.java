@@ -77,7 +77,13 @@ public class FragmentPictures extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        model.closeRingIfNeeded(findViewPager().getCurrentItem());
+        model.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        model.onPause();
+        super.onPause();
     }
 
     @Override
@@ -98,7 +104,7 @@ public class FragmentPictures extends Fragment {
         findViewPager().setCurrentItem(page, smoothScroll);
     }
 
-    private ViewPager findViewPager() {
+    ViewPager findViewPager() {
         return (ViewPager)getView();
     }
 }

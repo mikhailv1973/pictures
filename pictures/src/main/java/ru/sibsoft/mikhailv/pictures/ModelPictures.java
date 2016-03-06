@@ -1,7 +1,10 @@
 package ru.sibsoft.mikhailv.pictures;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Handler;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -36,6 +39,8 @@ public class ModelPictures {
     private final SpiceManager spiceManager = new SpiceManager(LoadImageService.class);
     private final FragmentPictures fragment;
     private List<ListItem> listItems;
+    private Preferences prefs;
+    private Handler handlerSlideshow;
 
     public ModelPictures(FragmentPictures fragment) {
         this.fragment = fragment;
@@ -66,6 +71,31 @@ public class ModelPictures {
                 }
             }
         } catch(FileNotFoundException e) {
+        }
+    }
+
+    public void onResume() {
+        closeRingIfNeeded(fragment.findViewPager().getCurrentItem());
+        prefs = new Preferences(fragment.getActivity().getSharedPreferences("URA", Context.MODE_PRIVATE));
+        if(prefs.slideshow) {
+            if(handlerSlideshow == null) {
+                handlerSlideshow = new Handler();
+            }
+            handlerSlideshow.removeCallbacksAndMessages(null);
+            handlerSlideshow.post(new Runnable() {
+                @Override
+                public void run() {
+                    handlerSlideshow.postDelayed(this, prefs.interval * 1000);
+                    fragment.gotoPage((int) Math.round(Math.random() * listItems.size()) + 1, true);
+                }
+            });
+        }
+    }
+
+    public void onPause() {
+        if(handlerSlideshow != null) {
+            handlerSlideshow.removeCallbacksAndMessages(null);
+            handlerSlideshow = null;
         }
     }
 
@@ -195,6 +225,20 @@ public class ModelPictures {
                     }
                 }
             });
+        }
+    }
+
+    class Preferences {
+        Boolean slideshow = false;
+        Integer interval = 1;
+        public Boolean showFavoritesOnly = false;
+        public Boolean showRandomly = false;
+
+        Preferences(SharedPreferences prefs) {
+            slideshow = prefs.getBoolean("slideshow", false);
+            interval = prefs.getInt("interval", 1);
+            showRandomly = prefs.getBoolean("showRandomly", false);
+            showFavoritesOnly = prefs.getBoolean("showFavouritesOnly", false);
         }
     }
 
