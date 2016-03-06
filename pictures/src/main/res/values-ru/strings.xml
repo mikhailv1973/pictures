@@ -6,6 +6,9 @@
     <string name="navigation_drawer_open">Открыть панель навигации</string>
     <string name="exit">Выход</string>
     <string name="add_to_favourites">Добавить в избранное</string>
-    <string name="slideshow">Автомат</string>
     <string name="remove_from_favourites">Развидеть это</string>
+    <string name="slideshow">Слайдшоу</string>
+    <string name="slideshow_interval">Интервал слайдшоу</string>
+    <string name="random">Показывать случайное изображение</string>
+    <string name="favourites_only">Показывать только избранное</string>
 </resources>

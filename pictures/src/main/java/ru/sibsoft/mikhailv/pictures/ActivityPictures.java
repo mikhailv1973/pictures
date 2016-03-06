@@ -1,5 +1,6 @@
 package ru.sibsoft.mikhailv.pictures;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.util.Pair;
@@ -65,6 +66,8 @@ public class ActivityPictures extends AppCompatActivity {
                 Pair.create(R.id.action_settings, new MenuItem.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
+                        Intent intent = new Intent(ActivityPictures.this, ActivitySettings.class);
+                        startActivity(intent);
                         return true;
                     }
                 }),
