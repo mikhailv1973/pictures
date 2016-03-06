@@ -92,6 +92,7 @@ public class ModelPictures {
             if(adapter != null) {
                 adapter.notifyDataSetChanged();
             }
+            fragment.gotoPage(fragment.findViewPager().getCurrentItem(), true);
         }
     }
 
@@ -114,6 +115,7 @@ public class ModelPictures {
                 fragment.gotoPage(fragment.findViewPager().getCurrentItem() + 1, true);
             }
         });
+        destroyAllViews();
     }
 
     public void onPause() {
