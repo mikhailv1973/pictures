@@ -16,12 +16,21 @@ import java.util.Arrays;
 
 public class ActivityPictures extends AppCompatActivity {
 
-    private FragmentPictures fragment = new FragmentPictures();
+    Bookshelf bookshelf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pictures);
+
+        bookshelf = (Bookshelf)getSupportFragmentManager().findFragmentByTag("BOOKSHELF");
+        if(bookshelf == null) {
+            bookshelf = new Bookshelf();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(bookshelf, "BOOKSHELF")
+                    .commit();
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -40,13 +49,6 @@ public class ActivityPictures extends AppCompatActivity {
                 return true;
             }
         });
-
-        if(savedInstanceState == null) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .add(R.id.container, fragment)
-                    .commit();
-        }
     }
 
     @Override
@@ -88,4 +90,20 @@ public class ActivityPictures extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.action_add_to_favorites).setVisible(!getFragment().isVisiblePageFavourite());
+        menu.findItem(R.id.action_add_to_favorites).setEnabled(!getFragment().isSlideshow());
+        menu.findItem(R.id.action_remove_from_favorites).setVisible(getFragment().isVisiblePageFavourite());
+        menu.findItem(R.id.action_remove_from_favorites).setEnabled(!getFragment().isSlideshow());
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    public Bookshelf getBookshelf() {
+        return bookshelf;
+    }
+
+    public FragmentPictures getFragment() {
+        return (FragmentPictures)getSupportFragmentManager().findFragmentById(R.id.fragment_pictures);
+    }
 }

@@ -12,4 +12,5 @@
     <string name="slideshow_interval">Slideshow interval</string>
     <string name="random">Random slideshow</string>
     <string name="favourites_only">Only favourites</string>
+    <string name="bookshelf">bookshelf</string>
 </resources>

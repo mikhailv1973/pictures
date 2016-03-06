@@ -11,4 +11,5 @@
     <string name="slideshow_interval">Интервал слайдшоу</string>
     <string name="random">Показывать случайное изображение</string>
     <string name="favourites_only">Показывать только избранное</string>
+    <string name="bookshelf">bookshelf</string>
 </resources>

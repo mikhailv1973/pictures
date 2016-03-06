@@ -1,8 +1,8 @@
 package ru.sibsoft.mikhailv.pictures;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -14,100 +14,92 @@ import android.view.ViewGroup;
  */
 public class FragmentPictures extends Fragment {
 
-    private ModelPictures model = new ModelPictures(this);
+    private Handler slideshowHandler;
 
     // region Lifecycle
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-        model.onStart();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_pictures, container, false);
+        View view = inflater.inflate(R.layout.fragment_pictures, container, false);
+        return view;
     }
 
     @Override
-    public void onViewStateRestored(Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        findViewPager().setAdapter(new PagerAdapter() {
-            @Override
-            public int getCount() {
-                return model.getCount();
-            }
-
-            @Override
-            public boolean isViewFromObject(View view, Object object) {
-                return view == object;
-            }
-
-            @Override
-            public Object instantiateItem(ViewGroup container, int position) {
-                return model.createView(position);
-            }
-
-            @Override
-            public void destroyItem(ViewGroup container, int position, Object object) {
-                model.destroyView(position, (View)object);
-            }
-
-            @Override
-            public int getItemPosition(Object object) {
-                Integer position = model.getViewPosition((View)object);
-                return position == null ? POSITION_NONE : position;
-            }
-        });
-        findViewPager().addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        ViewPager viewPager = (ViewPager)getView().findViewById(R.id.view_pager);
+        viewPager.setAdapter(getBookshelf().getAdapter());
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
             }
 
             @Override
             public void onPageSelected(int position) {
+                getActivity().invalidateOptionsMenu();
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-                if(state == ViewPager.SCROLL_STATE_IDLE) {
-                    model.closeRingIfNeeded(findViewPager().getCurrentItem());
-                }
             }
         });
-        findViewPager().setOnTouchListener(new View.OnTouchListener() {
+        viewPager.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return !model.canScroll();
+                return isSlideshow();
             }
         });
-        if(savedInstanceState == null) {
-            gotoPage(1, false);
-        }
+    }
+
+    private Bookshelf getBookshelf() {
+        return ((ActivityPictures)getActivity()).getBookshelf();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        model.onResume();
+        getBookshelf().rebuild();
+        getBookshelf().getAdapter().finishUpdate(findViewPager());
+        if(isSlideshow()) {
+            final Long delay = getSlideshowDelay() * 1000;
+            slideshowHandler = new Handler();
+            slideshowHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    slideshowHandler.removeCallbacks(this);
+                    findViewPager().setCurrentItem(findViewPager().getCurrentItem() + 1, true);
+                    slideshowHandler.postDelayed(this, delay);
+                }
+            });
+        }
+    }
+
+    private Long getSlideshowDelay() {
+        return getBookshelf().getSlideshowDelay();
     }
 
     @Override
     public void onPause() {
-        model.onPause();
+        if(slideshowHandler != null) {
+            slideshowHandler.removeCallbacksAndMessages(null);
+            slideshowHandler = null;
+        }
         super.onPause();
     }
 
     @Override
     public void onDestroyView() {
-        model.destroyAllViews();
+        findViewPager().setAdapter(null);
         super.onDestroyView();
     }
 
     @Override
     public void onDestroy() {
-        model.onStop();
         super.onDestroy();
     }
 
@@ -119,5 +111,13 @@ public class FragmentPictures extends Fragment {
 
     ViewPager findViewPager() {
         return (ViewPager)getView().findViewById(R.id.view_pager);
+    }
+
+    public boolean isVisiblePageFavourite() {
+        return false;
+    }
+
+    public boolean isSlideshow() {
+        return getBookshelf().isSlideshow();
     }
 }
