@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Картинки</string>
+    <string name="action_settings">Настройки</string>
+    <string name="navigation_drawer_close">Закрыть панель навигации</string>
+    <string name="navigation_drawer_open">Открыть панель навигации</string>
+    <string name="exit">Выход</string>
+    <string name="add_to_favourites">Добавить в избранное</string>
+    <string name="slideshow">Автомат</string>
+    <string name="remove_from_favourites">Развидеть это</string>
+</resources>

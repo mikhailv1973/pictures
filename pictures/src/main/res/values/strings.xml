@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Pictures</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="exit">Exit</string>
+    <string name="add_to_favourites">Add to favourites</string>
+    <string name="slideshow">Slideshow</string>
+    <string name="remove_from_favourites">Favourites</string>
+</resources>

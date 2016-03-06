@@ -1,0 +1,6 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <item name="ic_menu_exit" type="drawable">@android:drawable/ic_delete</item>
+    <item name="ic_add_to_favourites" type="drawable">@android:drawable/btn_star_big_off</item>
+    <item name="ic_remove_from_favourites" type="drawable">@android:drawable/btn_star_big_on</item>
+    <item name="ic_menu_manage" type="drawable">@android:drawable/ic_menu_manage</item>
+</resources>
