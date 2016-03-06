@@ -9,7 +9,8 @@ import android.view.ViewGroup;
  * Created by Mikhail on 2/18/2016.
  */
 public abstract class BookVirtual extends Book {
-
+    protected Book underlyingBook = null;
+    int countObservers = 0;
     private final DataSetObserver observer = new DataSetObserver() {
         @Override
         public void onChanged() {
@@ -23,10 +24,6 @@ public abstract class BookVirtual extends Book {
             notifyDataSetChanged();
         }
     };
-
-    protected Book underlyingBook = null;
-
-    int countObservers = 0;
 
     public BookVirtual(Book underlyingBook) {
         this.underlyingBook = underlyingBook;
@@ -86,9 +83,22 @@ public abstract class BookVirtual extends Book {
     }
 
     @Override
+    public boolean contains(Page page) {
+        try {
+            PageVirtual pageVirtual = (PageVirtual)page;
+            return underlyingBook.contains(pageVirtual.getUnderlyingPage());
+        } catch(ClassCastException e) {
+            return false;
+        }
+    }
+
+    @Override
     public int getItemPosition(Object object) {
         try {
-            return getPageFromObject(object, Page.class).getNumber();
+            PageVirtual page = getPageFromObject(object, PageVirtual.class);
+            return contains(page.getUnderlyingPage())
+                    ? getPageFromObject(object, Page.class).getNumber()
+                    : POSITION_NONE;
         } catch(ClassCastException e) {
             return POSITION_NONE;
         }

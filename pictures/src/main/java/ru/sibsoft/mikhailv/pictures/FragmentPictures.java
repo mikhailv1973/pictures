@@ -64,7 +64,7 @@ public class FragmentPictures extends Fragment {
     public void onResume() {
         super.onResume();
         getBookshelf().rebuild();
-        getBookshelf().getAdapter().finishUpdate(findViewPager());
+//        getBookshelf().getAdapter().finishUpdate(findViewPager());
         if(isSlideshow()) {
             final Long delay = getSlideshowDelay() * 1000;
             slideshowHandler = new Handler();

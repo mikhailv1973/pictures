@@ -17,6 +17,8 @@ public abstract class Book extends PagerAdapter {
 
     protected abstract void initializePages();
 
+    public abstract boolean contains(Page page);
+
     @Override
     public int getCount() {
         return 0;
@@ -29,7 +31,7 @@ public abstract class Book extends PagerAdapter {
 
     protected <P extends Page> P getPageFromObject(Object object, Class<P> clazz) throws ClassCastException {
         View view = (View)object;
-        return (P)view.getTag(R.id.viewSource);
+        return view == null ? null : (P)view.getTag(R.id.viewSource);
     }
 
     @Override
@@ -41,4 +43,28 @@ public abstract class Book extends PagerAdapter {
     public void restoreState(Parcelable state, ClassLoader loader) {
         super.restoreState(state, loader);
     }
+
+    public static final Book empty = new Book() {
+        @Override
+        void onStart() {
+        }
+
+        @Override
+        public void onStop() {
+        }
+
+        @Override
+        public Page getPage(int position) {
+            return null;
+        }
+
+        @Override
+        protected void initializePages() {
+        }
+
+        @Override
+        public boolean contains(Page page) {
+            return false;
+        }
+    };
 }

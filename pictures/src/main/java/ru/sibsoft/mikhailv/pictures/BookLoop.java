@@ -1,6 +1,5 @@
 package ru.sibsoft.mikhailv.pictures;
 
-import android.support.v4.view.ViewPager;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
@@ -14,9 +13,7 @@ import java.util.Set;
 public class BookLoop extends BookVirtual {
 
     private List<PageVirtual> pages;
-    private boolean needNotify = false;
-    private int delta = 0;
-    private int newPosition = 0;
+    private PageVirtual pagePrimary = null;
 
     public BookLoop(Book book) {
         super(book);
@@ -43,41 +40,55 @@ public class BookLoop extends BookVirtual {
 
     @Override
     public void setPrimaryItem(ViewGroup container, int position, Object object) {
-        delta = position == 0 ? getCount() - 2
-                : position == getCount() - 1 ? 2 - getCount()
-                : 0;
-        newPosition = position + delta;
+        pagePrimary = getPageFromObject(object, PageVirtual.class);
     }
 
     @Override
     public void startUpdate(ViewGroup container) {
     }
 
+    private boolean isCorrectNumber(PageVirtual page) {
+        return page.getNumber() < getCount() &&
+                page.getNumber() % underlyingBook.getCount() == page.getUnderlyingPage().getNumber();
+    }
+
     @Override
     public void finishUpdate(ViewGroup container) {
+        if(getCount() < 2) {
+            return;
+        }
+        int primaryNumber = isCorrectNumber(pagePrimary)
+                ? pagePrimary.getNumber()
+                : pagePrimary.getUnderlyingPage().getNumber();
+        int newPrimaryNumber = primaryNumber == getCount() - 1 ? 1
+                : primaryNumber == 0 ? getCount() - 2
+                : primaryNumber;
+        boolean needNotify = pagePrimary.getNumber() != newPrimaryNumber;
+        pagePrimary.setNumber(newPrimaryNumber);
         Set<Integer> onScreen = new HashSet<>();
-        boolean needNotify = false;
+        onScreen.add(pagePrimary.getUnderlyingPage().getNumber());
         for(int i = 0; i < container.getChildCount(); i++) {
             try {
-                Page page = getPageFromObject(container.getChildAt(i), Page.class);
-                int newNumber = page.getNumber() + delta;
-                int rootNumber = page.getRootPage().getNumber();
-                if(0 <= newNumber && newNumber < getCount()) {
-                    needNotify = needNotify || newNumber != page.getNumber();
-                    page.setNumber(newNumber);
-                    onScreen.add(rootNumber);
-                } else if(onScreen.contains(rootNumber)) {
-                    needNotify = needNotify || POSITION_NONE != page.getNumber();
+                PageVirtual page = getPageFromObject(container.getChildAt(i), PageVirtual.class);
+                if(page == pagePrimary) {
+                    continue;
+                } else if(onScreen.contains(page.getUnderlyingPage().getNumber())) {
+                    needNotify = true;
                     page.setNumber(POSITION_NONE);
-                } else {
-                    needNotify = needNotify || rootNumber != page.getNumber();
-                    onScreen.add(rootNumber);
-                    page.setNumber(rootNumber);
+                    continue;
                 }
+                onScreen.add(page.getUnderlyingPage().getNumber());
+                int number = isCorrectNumber(page)
+                        ? page.getNumber()
+                        : page.getUnderlyingPage().getNumber();
+                int newNumber = newPrimaryNumber == 1 && number == getCount() - 2 ? 0
+                        : newPrimaryNumber == getCount() - 2 && number == 1 ? getCount() - 1
+                        : number;
+                needNotify = needNotify || page.getNumber() != newNumber;
+                page.setNumber(newNumber);
             } catch(ClassCastException e) {
             }
         }
-        delta = 0;
         if(needNotify) {
             notifyDataSetChanged();
         }

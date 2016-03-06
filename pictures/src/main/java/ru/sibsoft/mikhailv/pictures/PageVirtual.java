@@ -16,6 +16,11 @@ class PageVirtual implements Page {
         this.number = number;
     }
 
+    public PageVirtual(PageVirtual pageVirtual) {
+        page = pageVirtual.page;
+        number = pageVirtual.number;
+    }
+
     @Override
     public View createView(ViewPager container) {
         View view = page.createView(container);
@@ -31,6 +36,10 @@ class PageVirtual implements Page {
     @Override
     public int getNumber() {
         return number;
+    }
+
+    public Page getUnderlyingPage() {
+        return page;
     }
 
     @Override

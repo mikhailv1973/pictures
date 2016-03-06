@@ -112,6 +112,18 @@ public class BookPersistent extends Book {
         return page.getNumber();
     }
 
+    @Override
+    public boolean contains(Page page) {
+        try {
+            PagePersistent pagePersistent = (PagePersistent)page;
+            return pages.get(pagePersistent.getNumber()).id == pagePersistent.id;
+        } catch(ClassCastException e) {
+            return false;
+        } catch(IndexOutOfBoundsException e) {
+            return false;
+        }
+    }
+
     private interface ImageRequestListener<RESULT> extends RequestListener<RESULT>, RequestProgressListener
     {
     }

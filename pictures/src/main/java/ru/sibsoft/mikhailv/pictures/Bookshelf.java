@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import ru.sibsoft.mikhailv.pictures.data.DataSettings;
@@ -13,31 +14,18 @@ import ru.sibsoft.mikhailv.pictures.data.DataSettings;
  */
 public class Bookshelf extends Fragment {
 
-    BookVirtual currentBook = new BookVirtual(new Book() {
-        @Override
-        void onStart() {
-        }
+    private static final String LOG_TAG = Bookshelf.class.getSimpleName();
 
-        @Override
-        public void onStop() {
-        }
-
+    BookVirtual currentBook = new BookVirtual(Book.empty) {
         @Override
         public Page getPage(int position) {
-            return null;
-        }
-
-        @Override
-        protected void initializePages() {
-        }
-    }) {
-        @Override
-        public Page getPage(int position) {
+            Log.d(LOG_TAG, String.format("getPage: position: %d", position));
             return underlyingBook.getPage(position);
         }
 
         @Override
         protected void initializePages() {
+            Log.d(LOG_TAG, String.format("initializePages"));
         }
 
         @Override
@@ -47,6 +35,13 @@ public class Bookshelf extends Fragment {
 
         @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
+            if(object == null) {
+                Log.d(LOG_TAG, String.format("setPrimaryItem: position: %d, object: nunll", position));
+            } else {
+                Log.d(LOG_TAG, String.format("setPrimaryItem: position: %d, number: %d, rootNumber: %d",
+                        position, getPageFromObject(object, PageVirtual.class).getNumber(),
+                        getPageFromObject(object, PageVirtual.class).getRootPage().getNumber()));
+            }
             underlyingBook.setPrimaryItem(container, position, object);
         }
 
@@ -58,6 +53,32 @@ public class Bookshelf extends Fragment {
         @Override
         public void startUpdate(ViewGroup container) {
             underlyingBook.startUpdate(container);
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Object object = super.instantiateItem(container, position);
+            Log.d(LOG_TAG, String.format("instantiateItem: position: %d, number: %d, rootNumber: %d",
+                    position, getPageFromObject(object, PageVirtual.class).getNumber(),
+                    getPageFromObject(object, PageVirtual.class).getRootPage().getNumber()));
+            return object;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            Log.d(LOG_TAG, String.format("destroyItem: position: %d, number: %d, rootNumber: %d",
+                    position, getPageFromObject(object, PageVirtual.class).getNumber(),
+                    getPageFromObject(object, PageVirtual.class).getRootPage().getNumber()));
+            super.destroyItem(container, position, object);
+        }
+
+        @Override
+        public int getItemPosition(Object object) {
+            int position = super.getItemPosition(object);
+            Log.d(LOG_TAG, String.format("getItemPosition: position: %d, number: %d, rootNumber: %d",
+                    position, getPageFromObject(object, PageVirtual.class).getNumber(),
+                    getPageFromObject(object, PageVirtual.class).getRootPage().getNumber()));
+            return position;
         }
     };
     private BookPersistent persistent;
