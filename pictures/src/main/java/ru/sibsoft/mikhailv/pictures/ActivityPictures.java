@@ -15,6 +15,8 @@ import java.util.Arrays;
 
 public class ActivityPictures extends AppCompatActivity {
 
+    private FragmentPictures fragment = new FragmentPictures();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +39,13 @@ public class ActivityPictures extends AppCompatActivity {
                 return true;
             }
         });
+
+        if(savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.container, fragment)
+                    .commit();
+        }
     }
 
     @Override
