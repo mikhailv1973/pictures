@@ -2,12 +2,21 @@
 <manifest package="ru.sibsoft.mikhailv.pictures"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/app_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <service
+            android:name=".LoadImageService"
+            android:enabled="true"
+            android:exported="true"/>
+
         <activity
             android:name=".ActivityPictures"
             android:label="@string/app_name"
